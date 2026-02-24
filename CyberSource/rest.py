@@ -66,33 +66,24 @@ class RESTClientObject(object):
         hashed_key = hash_object.hexdigest()
 
         if hashed_key not in cls._urllib3_poolmanagers:
-            my_pool_manager = None
+            # Standard urllib3 (no urllib3-future): omit keepalive_delay, keepalive_idle_window
+            base_kwargs = dict(
+                num_pools=hash_candidates_dict['pools_size'],
+                maxsize=hash_candidates_dict['maxsize'],
+                cert_reqs=hash_candidates_dict['cert_reqs'],
+                ca_certs=hash_candidates_dict['ca_certs'],
+                cert_file=hash_candidates_dict['cert_file'],
+                key_file=hash_candidates_dict['key_file'],
+                key_password=hash_candidates_dict['key_password'],
+            )
             if 'proxy' in hash_candidates_dict:
                 my_pool_manager = urllib3.ProxyManager(
-                    num_pools=hash_candidates_dict['pools_size'],
-                    maxsize=hash_candidates_dict['maxsize'],
-                    cert_reqs=hash_candidates_dict['cert_reqs'],
-                    ca_certs=hash_candidates_dict['ca_certs'],
-                    cert_file=hash_candidates_dict['cert_file'],
-                    key_file=hash_candidates_dict['key_file'],
-                    key_password=hash_candidates_dict['key_password'],
                     proxy_url=hash_candidates_dict['proxy'],
-                    proxy_headers=hash_candidates_dict['proxy_auth_headers'],
-                    keepalive_delay=hash_candidates_dict['keepalive_delay'],
-                    keepalive_idle_window=hash_candidates_dict['keepalive_idle_window']
+                    proxy_headers=hash_candidates_dict.get('proxy_auth_headers'),
+                    **base_kwargs
                 )
             else:
-                my_pool_manager = urllib3.PoolManager(
-                    num_pools=hash_candidates_dict['pools_size'],
-                    maxsize=hash_candidates_dict['maxsize'],
-                    cert_reqs=hash_candidates_dict['cert_reqs'],
-                    ca_certs=hash_candidates_dict['ca_certs'],
-                    cert_file=hash_candidates_dict['cert_file'],
-                    key_file=hash_candidates_dict['key_file'],
-                    key_password=hash_candidates_dict['key_password'],
-                    keepalive_delay=hash_candidates_dict['keepalive_delay'],
-                    keepalive_idle_window=hash_candidates_dict['keepalive_idle_window']
-                )
+                my_pool_manager = urllib3.PoolManager(**base_kwargs)
 
             cls._urllib3_poolmanagers[hashed_key] = my_pool_manager
         

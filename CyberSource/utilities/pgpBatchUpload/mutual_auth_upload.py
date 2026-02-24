@@ -3,7 +3,15 @@ import uuid
 
 import certifi
 import urllib3
-from urllib3 import BaseHTTPResponse
+
+# Standard urllib3; fallback for urllib3-future or urllib3 1.26 (HTTPResponse)
+try:
+    from urllib3 import BaseHTTPResponse
+except ImportError:
+    try:
+        from urllib3_future import BaseHTTPResponse
+    except ImportError:
+        BaseHTTPResponse = getattr(urllib3, "HTTPResponse", object)
 
 import CyberSource.logging.log_factory as LogFactory
 from authenticationsdk.util.GlobalLabelParameters import GlobalLabelParameters
